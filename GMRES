@@ -1,0 +1,43 @@
+clc;
+clear all;
+close all;
+a = [1, 1; -1, 1];
+A = blkdiag(a, a, a);
+x = [1; 0; -1; 2;3;0];
+b = A*x;
+x0 = [4; -1; -1; 0;3;0];
+xl = x0+ones(6);
+m = 6;
+tol = 10^(-4);
+while (norm(xl-x0) > tol)
+        r0 = b-A*x0;
+        beta = norm(r0,2);
+        v = r0/beta; % Initialize v as a matrix
+        V = [v];
+        hh = zeros(m+1, m); % Initialize h matrix to avoid dimension issues
+        sw = 1;
+        j = 1;
+        while (j <= m) && (sw == 1)
+            ww = A*(V(:,j));
+            for i=1:j
+                hh(i,j)=dot(ww,V(:,i));
+                ww=ww-hh(i,j)*V(:,i);
+            end 
+            hh(j+1,j)= norm(ww(j),2);
+            if hh(j+1,j)==0
+                 m = j
+                 sw = 0;
+            else
+                V = [V ww/hh(j+1,j)];  
+            end
+            j = j + 1;
+        end
+        H = hh(1:m+1,1:m);
+        E1 = zeros(m+1,1);
+        E1(1) = beta;
+        B = H'*H;
+        Y = B\(H'*E1)%normal equation
+        xl = x0;
+        x0 = x0 + V*Y;
+end
+x0;
